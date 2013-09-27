@@ -141,8 +141,6 @@ AUTHENTICATION_BACKENDS = (
     'django_browserid.auth.BrowserIDBackend',
 )
 
-BROWSERID_VERIFY_VIEW = 'moderate.views.mozilla_browserid_verify'
-
 # Uncomment the following line for local development, or BrowserID
 # will fail to log you in.
 SITE_URL = 'http://127.0.0.1:8000'
@@ -150,12 +148,14 @@ SITE_URL = 'http://127.0.0.1:8000'
 # Do not create account for new users.
 BROWSERID_CREATE_USER = False
 
-LOGIN_URL = '/login/'
 
 # Path to redirect to on successful login.
 LOGIN_REDIRECT_URL = '/'
 # Path to redirect to on unsuccessful login attempt.
-LOGIN_REDIRECT_URL_FAILURE = '/login/failed/'
+LOGIN_REDIRECT_URL_FAILURE = '/'
+# Path to redirect to on logout.
+LOGOUT_REDIRECT_URL = '/'
+
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
@@ -182,7 +182,7 @@ LOGGING = {
     'loggers': {
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'propagate': True,
         },
     }
@@ -195,7 +195,7 @@ MOZILLIANS_API_URL = "https://mozillians.org/api/v1/users/"
 
 # Replace with your mozillians API credentials
 # MOZILLIANS_API_APPNAME =
-# MOZILLIANS_APP_KEY =
+# MOZILLIANS_API_KEY =
 
 # Override settings from local_settings.py
 try:

@@ -12,12 +12,6 @@ urlpatterns = patterns('',
     url(r'^browserid/', include('django_browserid.urls'),
         name='mozilla_browserid_verify'),
 
-    # Login/Logout
-    url(r'^login/failed/$', 'moderator.moderate.views.login_failed',
-        name='login_failed'),
-    url(r'^logout/$', 'django.contrib.auth.views.logout',
-        {'next_page': '/'}, name='logout'),
-
     # Admin
     url(r'^admin/', include(admin.site.urls)),
 

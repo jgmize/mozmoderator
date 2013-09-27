@@ -15,55 +15,41 @@ from moderator.moderate.forms import QuestionForm
 
 class CustomVerify(Verify):
     def form_valid(self, form):
-        if form.is_valid():
-            self.assertion = form.cleaned_data['assertion']
-            self.audience = get_audience(self.request)
-            result = verify(self.assertion, self.audience)
-            try:
-                _is_valid_login = False
-                if result:
-                    if User.objects.filter(email=result['email']).exists():
-                        _is_valid_login = True
-                    else:
-                        data = is_vouched(result['email'])
-                        if data and data['is_vouched']:
-                            _is_valid_login = True
-                            user = User.objects.create_user(
-                                username=default_username_algo(data['email']),
-                                email=data['email'])
-                            user.save()
-                            mozillian = MozillianProfile(
-                                user=user,
-                                username=data['username'],
-                                avatar_url=data['photo'])
-                            mozillian.save()
+        self.assertion = form.cleaned_data['assertion']
+        self.audience = get_audience(self.request)
+        result = verify(self.assertion, self.audience)
 
-                if _is_valid_login:
-                    user = auth.authenticate(assertion=self.assertion,
-                                             audience=self.audience)
-                    auth.login(self.request, user)
-                    return redirect('main')
+        _is_valid_login = False
+        if result:
+            if User.objects.filter(email=result['email']).exists():
+                _is_valid_login = True
+            else:
+                data = is_vouched(result['email'])
+                if data and data['is_vouched']:
+                    _is_valid_login = True
+                    user = User.objects.create_user(
+                        username=default_username_algo(data['email']),
+                        email=data['email'])
+                    user.save()
+                    mozillian = MozillianProfile(
+                        user=user,
+                        username=data['username'],
+                        avatar_url=data['photo'])
+                    mozillian.save()
 
-            except BadStatusCodeError:
-                message = ('Login failed.')
-                return login_failed(self.request, message)
+        try:
+            self.user = auth.authenticate(
+                assertion=self.assertion,
+                audience=self.audience
+                )
 
-        return login_failed(self.request)
+        except BrowserIDException as e:
+            return self.login_failure(e)
 
+        if self.user and _is_valid_login:
+            return self.login_success()
 
-def login_failed(request, msg=None):
-    """Login failed view.
-
-    This view acts like a segway between a failed login attempt and
-    'main' view. Adds messages in the messages framework queue, that
-    informs user login failed.
-
-    """
-    if not msg:
-        msg = ('Login failed.')
-    messages.warning(request, msg)
-
-    return render(request, 'index.html', {'user': request.user})
+        return self.login_failure()
 
 
 def main(request):
@@ -75,7 +61,7 @@ def main(request):
             'user': request.user
             })
     else:
-        return login_failed(request)
+        return render(request, 'index.html')
 
 
 @login_required
