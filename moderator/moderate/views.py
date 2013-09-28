@@ -91,7 +91,8 @@ def event(request, e_slug):
     return render(request, 'questions.html',
                   {'user': request.user,
                    'event': event,
-                   'questions': questions,
+                   'questions': sorted(questions, key=lambda x: x.get_vote_count,
+                                       reverse=True),
                    'q_form': question_form})
 
 
