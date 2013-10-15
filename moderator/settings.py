@@ -1,7 +1,7 @@
 import os
+import dj_database_url
 
-
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -10,21 +10,26 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'moderator-db',                      # Or path to database file if using sqlite3.
-        # The following settings are not used with sqlite3:
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
-        'PORT': '',                      # Set to empty string for default.
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config()
     }
-}
+    if 'mysql' in DATABASES['default']['ENGINE']:
+        opt = DATABASES['default'].get('OPTIONS', {})
+        opt['init_command'] = 'SET storage_engine=InnoDB'
+        opt['charset'] = 'utf8'
+        opt['use_unicode'] = True
+        DATABASES['default']['OPTIONS'] = opt
+    DATABASES['default']['TEST_CHARSET'] = 'utf8'
+    DATABASES['default']['TEST_COLLATION'] = 'utf8_general_ci'
+
+else:
+    DATABASES = {}
+
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['moderator.paas.allizom.org']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
