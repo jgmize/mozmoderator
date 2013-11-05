@@ -25,6 +25,7 @@ class CustomVerify(Verify):
 
         try:
             _is_valid_login = False
+
             if result:
                 if User.objects.filter(email=result['email']).exists():
                     _is_valid_login = True

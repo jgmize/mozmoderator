@@ -7,6 +7,7 @@ import urllib
 
 from django.conf import settings
 
+logger = logging.getLogger('moderator')
 
 class BadStatusCodeError(Exception):
     """Return this exception when something
@@ -20,7 +21,7 @@ def is_vouched(email):
     check if a user is a vouched Mozillian.
     """
     if not getattr(settings, 'MOZILLIANS_API_KEY', None):
-        logging.error("'MOZILLIANS_API_KEY' not set up in settings.")
+        logger.error("'MOZILLIANS_API_KEY' not set up in settings.")
         return False
 
     # /api/v1/users/?app_name=foobar&app_key=12345&email=test@example.com
@@ -30,11 +31,18 @@ def is_vouched(email):
             'email': email}
     url += '?' + urllib.urlencode(data)
 
+    logger.debug('API query URL: %s' % url)
+
     resp = requests.get(url)
+
     if not resp.status_code == 200:
+        logger.error('Response status code: %s' % resp.status_code)
         url = url.replace(settings.MOZILLIANS_API_KEY, 'xxxscrubbedxxx')
         raise BadStatusCodeError('%s: on: %s' % (resp.status_code, url))
+
     content = json.loads(resp.content)
+
+    logger.debug('Response content: %s' % content)
 
     for obj in content['objects']:
         if obj['email'].lower() == email.lower():
