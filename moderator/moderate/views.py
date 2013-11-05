@@ -23,6 +23,8 @@ class CustomVerify(Verify):
         self.audience = get_audience(self.request)
         result = verify(self.assertion, self.audience)
 
+        logger.debug('Result: %s' % result)
+
         try:
             _is_valid_login = False
 
